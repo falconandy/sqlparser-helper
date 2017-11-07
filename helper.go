@@ -6,6 +6,11 @@ import (
     "github.com/xwb1989/sqlparser"
 )
 
+type Row struct {
+    // column types are: string, int, float32
+    Columns interface{}
+}
+
 const (
     CONDITION_OP_EQUALS = iota
     CONDITION_OP_GT
@@ -18,12 +23,6 @@ const (
     COMMAND_TYPE_SELECT = iota
     COMMANT_TYPE_INSERT
 )
-
-type Condition struct {
-    Key string
-    Operator int
-    Value interface{}
-}
 
 func IsSupportedQuery(&(sqlparser.Statement)) bool {
 
@@ -65,15 +64,14 @@ func GetTableName(&(sqlparser.Statement)) string {
     return ""
 }
 
-func GetConditions(&(sqlparser.Statement)) []Condition {
+func GetResults(&(sqlparser.Statement), data []Row) []Row {
+    resultData := make([]Row, 0)
 
-    // example transformation of stmt.Where into an array of AND statements
-    // argument query: a = 1 AND b = 2 AND c = 3 AND (q = 1 OR q = 2) OR n = 2 AND p = 2
-    // result[0]: a = 1 AND b = 2 AND c = 3 AND q = 1
-    // result[1]: a = 1 AND b = 2 AND c = 3 AND q = 2
-    // result[2]: n = 2 AND p = 2
+    // go through "data" array and put to resultData rows that match sqlparser.Statement.Where conditions
+    ...
+    //
 
-    return make([]Condition, 0)
+    return resultData
 }
 
 func GetLimit(&(sqlparser.Statement)) int {
