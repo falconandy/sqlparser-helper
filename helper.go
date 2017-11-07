@@ -1,5 +1,7 @@
 package sqlparserhelper
 
+/* sqlparser helper to parse SELECT / INSERT sql queries */
+
 import (
     "github.com/xwb1989/sqlparser"
 )
@@ -31,7 +33,7 @@ func IsSupportedQuery(&(sqlparser.Statement)) bool {
     //  * / key,value
     //  FROM (single table name only)
     //  WHERE
-    //  AND / OR / IN / NOT IN / NOT
+    //  AND / OR / IN / NOT IN / NOT / ()
     //  = / < / > / <= / >=
     //  LIMIT n
 
