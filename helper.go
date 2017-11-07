@@ -66,6 +66,13 @@ func GetTableName(&(sqlparser.Statement)) string {
 }
 
 func GetConditions(&(sqlparser.Statement)) []Condition {
+
+    // example transformation of stmt.Where into an array of AND statements
+    // argument query: a = 1 AND b = 2 AND c = 3 AND (q = 1 OR q = 2) OR n = 2 AND p = 2
+    // result[0]: a = 1 AND b = 2 AND c = 3 AND q = 1
+    // result[1]: a = 1 AND b = 2 AND c = 3 AND q = 2
+    // result[2]: n = 2 AND p = 2
+
     return make([]Condition, 0)
 }
 
