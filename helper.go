@@ -22,6 +22,7 @@ const (
 const (
     COMMAND_TYPE_SELECT = iota
     COMMANT_TYPE_INSERT
+    COMMAND_TYPE_UNSUPPORTED = -1
 )
 
 func IsSupportedQuery(&(sqlparser.Statement)) bool {
@@ -40,12 +41,16 @@ func IsSupportedQuery(&(sqlparser.Statement)) bool {
     //  single table name only
     //  (keys) values (values), and possible alternatives of keys-values
 
+    // all else - return false ?
+
+    // low priority function to get implemented
+
     return true
 }
 
 func GetCommandType(&(sqlparser.Statement)) int {
 
-    // COMMAND_TYPE_SELECT or COMMAND_TYPE_INSERT or -1
+    // COMMAND_TYPE_SELECT or COMMAND_TYPE_INSERT or COMMAND_TYPE_UNSUPPORTED
 
     return COMMAND_TYPE_SELECT
 }
