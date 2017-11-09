@@ -70,14 +70,41 @@ func GetTableName(query sqlparser.Statement) string {
 }
 
 func GetResults(query sqlparser.Statement, data []Row) []Row {
-	resultData := make([]Row, 0)
-
 	// go through "data" array and put to resultData rows that match sqlparser.Statement.Where conditions
 	// example SQL WHERE query part: SELECT * FROM table1 WHERE a = 1 AND b = 2 AND c = 3 AND (q = 1 OR q = 2) OR n = 2 AND p = 2;
 	// ...
 	//
 
-	return resultData
+	if len(data) == 0 {
+		return nil
+	}
+
+	selectStatement, ok := query.(*sqlparser.Select)
+	if !ok {
+		return nil
+	}
+
+	if selectStatement.Where == nil {
+		return data
+	}
+
+	if selectStatement.Where.Type != sqlparser.WhereStr {
+		return nil
+	}
+
+	visitor := &WhereVisitor{selectStatement.Where.Expr}
+	f := visitor.Visit()
+	if f != nil {
+		result := make([]Row, 0)
+		for _, row := range data {
+			if f(row.Columns) {
+				result = append(result, row)
+			}
+		}
+		return result
+	}
+
+	return nil
 }
 
 func GetLimit(query sqlparser.Statement) int {
