@@ -18,9 +18,13 @@ func (v *WhereVisitor) Visit() Predicate {
 }
 
 func (v *WhereVisitor) visitExpr(expr sqlparser.Expr) Predicate {
-	comparisonExpr, ok := expr.(*sqlparser.ComparisonExpr)
-	if ok {
-		return v.visitCompareExpr(comparisonExpr)
+	switch expr := expr.(type) {
+	case *sqlparser.AndExpr:
+		return v.visitAndExpr(expr)
+	case *sqlparser.OrExpr:
+		return v.visitOrExpr(expr)
+	case *sqlparser.ComparisonExpr:
+		return v.visitComparisonExpr(expr)
 	}
 
 	return func(item interface{}) bool {
@@ -28,7 +32,29 @@ func (v *WhereVisitor) visitExpr(expr sqlparser.Expr) Predicate {
 	}
 }
 
-func (v *WhereVisitor) visitCompareExpr(expr *sqlparser.ComparisonExpr) Predicate {
+func (v *WhereVisitor) visitAndExpr(expr *sqlparser.AndExpr) Predicate {
+	return func(item interface{}) bool {
+		left := v.visitExpr(expr.Left)
+		if !left(item) {
+			return false
+		}
+		right := v.visitExpr(expr.Right)
+		return right(item)
+	}
+}
+
+func (v *WhereVisitor) visitOrExpr(expr *sqlparser.OrExpr) Predicate {
+	return func(item interface{}) bool {
+		left := v.visitExpr(expr.Left)
+		if left(item) {
+			return true
+		}
+		right := v.visitExpr(expr.Right)
+		return right(item)
+	}
+}
+
+func (v *WhereVisitor) visitComparisonExpr(expr *sqlparser.ComparisonExpr) Predicate {
 	return func(item interface{}) bool {
 		if left, ok := v.getValue(item, expr.Left); ok {
 			if right, ok := v.getValue(item, expr.Right); ok {
