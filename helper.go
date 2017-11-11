@@ -3,6 +3,7 @@ package sqlparserhelper
 /* sqlparser helper to parse SELECT / INSERT sql queries */
 
 import (
+	"fmt"
 	"github.com/xwb1989/sqlparser"
 )
 
@@ -69,42 +70,41 @@ func GetTableName(query sqlparser.Statement) string {
 	return ""
 }
 
-func GetResults(query sqlparser.Statement, data []Row) []Row {
+func GetResults(query sqlparser.Statement, data []Row) ([]Row, error) {
 	// go through "data" array and put to resultData rows that match sqlparser.Statement.Where conditions
 	// example SQL WHERE query part: SELECT * FROM table1 WHERE a = 1 AND b = 2 AND c = 3 AND (q = 1 OR q = 2) OR n = 2 AND p = 2;
 	// ...
 	//
 
-	if len(data) == 0 {
-		return nil
-	}
-
 	selectStatement, ok := query.(*sqlparser.Select)
 	if !ok {
-		return nil
+		return nil, fmt.Errorf("unsupported query type: %T", query)
+	}
+
+	if len(data) == 0 {
+		return nil, nil
 	}
 
 	if selectStatement.Where == nil {
-		return data
+		return data, nil
 	}
 
 	if selectStatement.Where.Type != sqlparser.WhereStr {
-		return nil
+		return nil, fmt.Errorf("unsupported WHERE type: %s", selectStatement.Where.Type)
 	}
 
 	visitor := &WhereVisitor{selectStatement.Where.Expr}
-	f := visitor.Visit()
-	if f != nil {
-		result := make([]Row, 0)
-		for _, row := range data {
-			if f(row.Columns) {
-				result = append(result, row)
-			}
+	predicate := visitor.Visit()
+	result := make([]Row, 0)
+	for _, row := range data {
+		ok, err := predicate(row.Columns)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			result = append(result, row)
 		}
-		return result
 	}
-
-	return nil
+	return result, nil
 }
 
 func GetLimit(query sqlparser.Statement) int {
